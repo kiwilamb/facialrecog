@@ -26,21 +26,25 @@ class FacialRecog:
 
     def play_video(self):
         '''
-        Plays
-        :return:
+        Plays video feed (webcam or video file)
+        :return: nothing
         '''
         print("Playing {} video ...".format("webcam" if self.file == 0 else self.file))
+        start = time.time()
+        frames = 0
         while True:
+            frames += 1
             flag, frame = self.video.read()
-            # print(flag)
-            # print(self.video)
             cv2.imshow("frame", frame)
             if cv2.waitKey(1) == 27:
                 print("Stopping {} video".format("webcam" if self.file == 0 else self.file))
                 break
             if self.file is not 0 and self.video.get(cv2.CAP_PROP_POS_FRAMES) == self.video.get(cv2.CAP_PROP_FRAME_COUNT):
+                # This works as it checks if it is a file first, if not it doesn't bother with other checks
                 print("Stopping {} video".format("webcam" if self.file == 0 else self.file))
                 break
+        fps = frames / (time.time() - start)
+        print("FPS: {}".format(fps))
 
 
 if __name__ == '__main__':
