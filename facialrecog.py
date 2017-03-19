@@ -3,6 +3,7 @@ import re
 import sys
 import cv2
 import time
+import shutil
 from openface import align_dlib
 
 
@@ -90,6 +91,16 @@ class FacialRecog:
         
         cv2.destroyAllWindows()
         print("Thank you, {} has been saved here: {}".format(name, base_dir))
+
+    def delete_person(self, name):
+        parsed_name = "_".join([n.lower() for n in name.split()])
+        base_dir = os.path.join(os.path.realpath("."), "people", parsed_name)
+        
+        if os.path.isdir(base_dir):
+            print("Deleting {}".format(base_dir))
+            shutil.rmtree(base_dir)
+        else:
+            print("{} does not exist".format(base_dir))
 
 if __name__ == '__main__':
     fr = FacialRecog()
