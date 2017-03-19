@@ -1,4 +1,6 @@
 import os
+import re
+import sys
 import cv2
 import time
 from openface import align_dlib
@@ -51,7 +53,44 @@ class FacialRecog:
         fps = frames / (time.time() - start)
         print("FPS: {}".format(fps))
 
+    def save_person(self, name):
+        print("===================================================================")
+        print("Facialrecog will take 10 pictures of you face using your webcam.")
+        print("Try to align your face in different angles so it can recognise you.")
+        print("Press 'C' to capture the image (note this is capital 'C')")
+        print("===================================================================")
+
+        parsed_name = "_".join([n.lower() for n in name.split()])
+        base_dir = os.path.join(os.path.realpath("."), "people", parsed_name)
+        
+        if os.path.isdir(base_dir):
+            print("{} is already a saved person".format(name))
+            file_names = os.listdir(base_dir)
+            correct_format = [bool(re.match(parsed_name + "-\d+.png", file)) for file in file_names]
+            if sum(correct_format) == 10:
+                print("All of {}'s files are saved correctly".format(name))
+            else:
+                print("{} of {}'s files are not saved correctly".format(str(10 - sum(correct_format)), name))
+                print("Delete {} and readd the files".format(parsed_name))
+            return None
+        else:
+            os.makedirs(base_dir)
+
+        for i in range(1, 11):
+            print("Taking image {}, press 'C' to capture".format(i))
+            while True:
+                flag, frame = self.video.read()
+                cv2.imshow(name, frame)
+                # May want to have face detection stuff repeated here so we can ensure image is worthwhile (don't allow picture unless contains a face
+                if cv2.waitKey(1) == 67:
+                    print("Snap!")
+                    break
+            file_name = os.path.join(base_dir, parsed_name + "-" + str(i) + ".png")
+            cv2.imwrite(file_name, frame)
+        
+        cv2.destroyAllWindows()
+        print("Thank you, {} has been saved here: {}".format(name, base_dir))
 
 if __name__ == '__main__':
     fr = FacialRecog()
-    fr.process_frames()
+    # fr.process_frames()
