@@ -102,6 +102,14 @@ class FacialRecog:
         else:
             print("{} does not exist".format(base_dir))
 
+    def list_people(self):
+        people = os.listdir(os.path.join(os.path.realpath("."), "people"))
+        print("The following people have been saved:")
+        for person in people:
+            print("    {}".format(person))
+
 if __name__ == '__main__':
     fr = FacialRecog()
+    # fr.save_person("Bob")
+    fr.list_people()
     # fr.process_frames()
