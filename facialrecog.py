@@ -27,15 +27,16 @@ class FacialRecog:
         if not self.video.isOpened():
             raise Exception("Couldn't connect to {}".format(self.device))
 
-    def process_frames(self):
+    def process_frames(self, timeout=300):
         """
         Plays video feed (webcam or video file)
         :return: nothing
         """
         print("Playing {} video ...".format(self.device))
         start = time.time()
+        timeout += time.time()
         frames = 0
-        while True:
+        while time.time() < timeout:
             frames += 1
             flag, frame = self.video.read()
             largest_face_box = self.face_alinger.getLargestFaceBoundingBox(frame)
@@ -54,7 +55,7 @@ class FacialRecog:
         fps = frames / (time.time() - start)
         print("FPS: {}".format(fps))
 
-    def save_person(self, name):
+    def save_person(self, name, timeout=20):
         print("===================================================================")
         print("Facialrecog will take 10 pictures of you face using your webcam.")
         print("Try to align your face in different angles so it can recognise you.")
@@ -79,7 +80,8 @@ class FacialRecog:
 
         for i in range(1, 11):
             print("Taking image {}, press 'C' to capture".format(i))
-            while True:
+            t = time.time() + timeout
+            while time.time() < t:
                 flag, frame = self.video.read()
                 cv2.imshow(name, frame)
                 # May want to have face detection stuff repeated here so we can ensure image is worthwhile (don't allow picture unless contains a face
@@ -110,6 +112,6 @@ class FacialRecog:
 
 if __name__ == '__main__':
     fr = FacialRecog()
-    # fr.save_person("Bob")
+    fr.save_person("Bb")
     fr.list_people()
     # fr.process_frames()
