@@ -22,9 +22,11 @@ class FacialRecog:
         if not self.video.isOpened():
             raise Exception("Couldn't connect to webcam")
 
-    def process_frames(self, timeout=300):
+    def _play_video(self, exit=27, timeout=300):
         """
-        Plays video feed (webcam or video file)
+        Play webcam video. For each frame detect largest face 
+        and draw rectangle around it
+
         :return: nothing
         """
         print("Playing webcam video ...")
@@ -39,12 +41,23 @@ class FacialRecog:
                 top_left = (largest_face_box.left(), largest_face_box.top())
                 bottom_right = (largest_face_box.right(), largest_face_box.bottom())
                 cv2.rectangle(frame, top_left, bottom_right, (0, 255, 0))
+                result = {
+                    "image": frame, 
+                    "rect": {
+                        "top_left": top_left,
+                        "bottom_right": bottom_right
+                    }
+                }
+            else:
+                result = {"image": frame}
             cv2.imshow("frame", frame)
-            if cv2.waitKey(1) == 27:
+            if cv2.waitKey(1) == exit:
                 print("Stopping webcam video")
                 break
         fps = frames / (time.time() - start)
         print("FPS: {}".format(fps))
+
+        return result
 
     def save_person(self, name, timeout=20):
         print("===================================================================")
@@ -71,16 +84,18 @@ class FacialRecog:
 
         for i in range(1, 11):
             print("Taking image {}, press 'C' to capture".format(i))
-            t = time.time() + timeout
-            while time.time() < t:
-                flag, frame = self.video.read()
-                cv2.imshow(name, frame)
-                # May want to have face detection stuff repeated here so we can ensure image is worthwhile (don't allow picture unless contains a face
-                if cv2.waitKey(1) == 67:
-                    print("Snap!")
+            for attempt in range(3):
+                largest_face = self._play_video(67, timeout)
+                if "rect" in largest_face:
+                    face_detected = True
                     break
+                else:
+                    face_detected = False
+                    print("No face detected, ensure your face is in front of the webcam")
+            if not face_detected:
+                raise Exception("No face detected for image {} after 3 attempts".format(i))
             file_name = os.path.join(base_dir, parsed_name + "-" + str(i) + ".png")
-            cv2.imwrite(file_name, frame)
+            cv2.imwrite(file_name, largest_face["image"])
         
         cv2.destroyAllWindows()
         print("Thank you, {} has been saved here: {}".format(name, base_dir))
