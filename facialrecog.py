@@ -10,7 +10,11 @@ from openface import align_dlib
 class FacialRecog:
 
     def __init__(self, timeout=10):
-        self.face_alinger = align_dlib.AlignDlib("shape_predictor_68_face_landmarks.dat")
+        landmarks_file = "shape_predictor_68_face_landmarks.dat"
+        if not os.path.isfile(landmarks_file):
+            url = "http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2"
+            urllib.request.urlretrieve(url, "shape_predictor_68_face_landmarks.dat")
+        self.face_alinger = align_dlib.AlignDlib(ldmks_file)
 
         self.video = cv2.VideoCapture(0)
         timeout += time.time()
