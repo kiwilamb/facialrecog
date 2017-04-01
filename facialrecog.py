@@ -1,5 +1,6 @@
 import os
 import re
+import bz2
 import sys
 import cv2
 import time
@@ -10,11 +11,13 @@ from openface import align_dlib
 class FacialRecog:
 
     def __init__(self, timeout=10):
-        landmarks_file = "shape_predictor_68_face_landmarks.dat"
         if not os.path.isfile(landmarks_file):
             url = "http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2"
-            urllib.request.urlretrieve(url, "shape_predictor_68_face_landmarks.dat")
-        self.face_alinger = align_dlib.AlignDlib(ldmks_file)
+            response = urllib.request.urlopen(url)
+            data = response.read()
+            uncompressed_data = bz2.decompress(data)
+            open(landmarks_file, 'wb').write(uncompressed_data)
+        self.face_alinger = align_dlib.AlignDlib(landmarks_file)
 
         self.video = cv2.VideoCapture(0)
         timeout += time.time()
